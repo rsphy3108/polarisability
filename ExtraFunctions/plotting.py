@@ -297,11 +297,6 @@ def writeTransitionData():
                         f.write("%s,%s,%s,%.16e,%.16e,%.16e\n"%(int(DATA[0][i][0]),int(DATA[0][i][1]),float(DATA[0][i][2]),abs(DATA[2][i]), DATA[1][i], 0))
 
 if __name__ == "__main__":
-    # run GUI by passing an arg:
-    if np.size(sys.argv) > 1 and sys.argv[1] == 'rungui':
-        runGUI()
-        sys.exit() # don't run any of the other code below
-
     Rb5P = dipole(Rb.m, (1,3/2.), [1064e-9, 20e-3, 1e-6],
                     Rb.D0P3, Rb.w0P3, Rb.lwP3, Rb.nljP3,
                     nuclear_spin = Rb.I,

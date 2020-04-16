@@ -5,13 +5,22 @@ AtomFieldInt_V3.py 04.02.19
 """
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 13}) # increase font size (default 10)
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 import sys
 sys.path.append('..')
-from AtomFieldInt_V3 import dipole, Rb, Cs, c, eps0, h, hbar, a0, e, me, kB, amu, Eh, au
+sys.path.append(r'Y:\Tweezer\People\Vincent\python snippets\plotting_tools')
+sys.path.append(r'Z`:\Tweezer\People\Vincent\python snippets\plotting_tools')
+from AtomFieldInt_V3 import dipole, atom, c, eps0, h, hbar, a0, e, me, kB, amu, Eh, au
+#from default_colours import DUsea_blue, DUcherry_red
+DUsea_blue = 'b'
+DUcherry_red = 'r'
 from matplotlib.ticker import AutoLocator
    
+Rb = atom(atm = 'Rb87')
+Cs = atom(atm = 'Cs133')
+
 def getMagicWavelengths(deltaE, E, wavelengths):
     """Find the magic wavelengths where the energy difference is zero.
     Define this where the fractional difference |deltaE/E| < 0.05 and the 
@@ -35,25 +44,13 @@ def plotStarkShifts(wavelength = 880e-9,             # laser wavelength in nm
     
     # mass, (L,J,F,MF), bprop, dipole matrix elements (Cm), resonant frequencies (rad/s),
     # linewidths (rad/s), state labels, nuclear spin, atomic symbol.
-    Rb5S = dipole(Rb.m, (0,1/2.,1,1), bprop,
-                    Rb.D0S, Rb.w0S, Rb.lwS, Rb.nljS,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)
+    Rb5S = dipole(Rb, (0,1/2.,1,1), bprop)
     
-    Rb5P = dipole(Rb.m, (1,3/2.,1,1), bprop,
-                    Rb.D0P3, Rb.w0P3, Rb.lwP3, Rb.nljP3,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)
+    Rb5P = dipole(Rb, (1,3/2.,1,1), bprop)
                     
-    Cs6S = dipole(Cs.m, (0,1/2.,3,3), bprop,
-                    Cs.D0S, Cs.w0S, Cs.lwS, Cs.nljS,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+    Cs6S = dipole(Cs, (0,1/2.,3,3), bprop)
                     
-    Cs6P = dipole(Cs.m, (1,3/2.,3,3), bprop,
-                    Cs.D0P3, Cs.w0P3, Cs.lwP3, Cs.nljP3,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+    Cs6P = dipole(Cs, (1,3/2.,3,3), bprop)
     
     # need a small spacing to resolve the magic wavelengths - so it will run slow
     # to resolve magic wavelengths, take about 10,000 points.
@@ -123,15 +120,9 @@ def compareArora():
             Ylim2 = (-100, 100)
             FS, FP = 3, 5
             
-        S = dipole(ATOM.m, (0,1/2.,FS,FS), bprop,
-                        ATOM.D0S, ATOM.w0S, ATOM.lwS, ATOM.nljS,
-                        nuclear_spin = ATOM.I,
-                        symbol=ATOM.X)
+        S = dipole(ATOM, (0,1/2.,FS,FS), bprop)
         
-        P3 = dipole(ATOM.m, (1,3/2.,FP,FP), bprop,
-                        ATOM.D0P3, ATOM.w0P3, ATOM.lwP3, ATOM.nljP3,
-                        nuclear_spin = ATOM.I,
-                        symbol=ATOM.X)
+        P3 = dipole(ATOM, (1,3/2.,FP,FP), bprop)
                         
         # compare polarisability of excited states
         plt.figure()
@@ -248,10 +239,7 @@ def runGUI():
             D0, w0, lw, nlj = atomObj.D0P3, atomObj.w0P3, atomObj.lwP3, atomObj.nljP3
         
         # construct the instance of the dipole class
-        dipoleObj = dipole(atomObj.m, (L,J,F,F), bprop,
-                D0, w0, lw, nlj,
-                nuclear_spin = atomObj.I,
-                symbol=atomObj.X)
+        dipoleObj = dipole(atomObj, (L,J,F,F), bprop)
         
         messagebox.showinfo("Calculation Result", getStarkShift(dipoleObj))
         
@@ -274,21 +262,12 @@ def combinedTrap(Cswl = 1064e-9, # wavelength of the Cs tweezer trap in m
     # mass, (L,J,F,MF), bprop, dipole matrix elements (Cm), resonant frequencies (rad/s),
     # linewidths (rad/s), state labels, nuclear spin, atomic symbol.
     # groundstate rubidium
-    Rb1064 = dipole(Rb.m, (0,1/2.,1,1), bprop,
-                    Rb.D0S, Rb.w0S, Rb.lwS, Rb.nljS,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)
+    Rb1064 = dipole(Rb, (0,1/2.,1,1), bprop)
                     
     # groundstate caesium
-    Cs1064 = dipole(Cs.m, (0,1/2.,4,4), bprop,
-                    Cs.D0S, Cs.w0S, Cs.lwS, Cs.nljS,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+    Cs1064 = dipole(Cs, (0,1/2.,4,4), bprop)
                     
-    CsP = dipole(Cs.m, (1,3/2.,5,5), bprop,
-                    Cs.D0P3, Cs.w0P3, Cs.lwP3, Cs.nljP3,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+    CsP = dipole(Cs, (1,3/2.,5,5), bprop)
                     
     # set the power of the traps so that the trap depth experienced by each 
     # species in the overlapping trap is the same:
@@ -296,15 +275,9 @@ def combinedTrap(Cswl = 1064e-9, # wavelength of the Cs tweezer trap in m
     
     # for the 880nm trap:
     bprop = [Rbwl, abs(P880), beamwaist]
-    Rb880 = dipole(Rb.m, (0,1/2.,1,1), bprop,
-                    Rb.D0S, Rb.w0S, Rb.lwS, Rb.nljS,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)
+    Rb880 = dipole(Rb, (0,1/2.,1,1), bprop)
                     
-    Cs880 = dipole(Cs.m, (0,1/2.,3,3), bprop,
-                    Cs.D0S, Cs.w0S, Cs.lwS, Cs.nljS,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+    Cs880 = dipole(Cs, (0,1/2.,3,3), bprop)
                     
     
     # in the trap with both tweezers overlapping: 
@@ -347,10 +320,10 @@ Rubidium: %.0f kHz \nCaesium: %.0f kHz"""%(Rbwl*1e9, Cswl*1e9, U0/kB*1e3, wrRb, 
             U1064 = atoms[0].acStarkShift(0,0,zs)/kB*1e3         # potential in the 1064 trap
             U880 = atoms[1].acStarkShift(0,0,zs-sep[n-i-1])/kB*1e3 # potential in the 880 trap
             plt.plot(zs*1e6, U, 'k')
-            plt.plot(zs*1e6, U1064, color='tab:orange', alpha=0.6)
-            plt.plot(zs*1e6, U880, color='tab:blue', alpha=0.6)
-            plt.plot([0]*2, [min(U),0], color='tab:orange', linewidth=10, label='%.0f'%(Cswl*1e9), alpha=0.4)
-            plt.plot([sep[n-i-1]*1e6]*2, [min(U),0], color='tab:blue', linewidth=10, label='%.0f'%(Rbwl*1e9), alpha=0.4)
+            plt.plot(zs*1e6, U1064, color=DUcherry_red, alpha=0.6)
+            plt.plot(zs*1e6, U880, color=DUsea_blue, alpha=0.6)
+            plt.plot([0]*2, [min(U),0], color=DUcherry_red, linewidth=10, label='%.0f'%(Cswl*1e9), alpha=0.4)
+            plt.plot([sep[n-i-1]*1e6]*2, [min(U),0], color=DUsea_blue, linewidth=10, label='%.0f'%(Rbwl*1e9), alpha=0.4)
             ax.set_xticks([])
             ax.set_yticks([])
             
@@ -360,42 +333,153 @@ Rubidium: %.0f kHz \nCaesium: %.0f kHz"""%(Rbwl*1e9, Cswl*1e9, U0/kB*1e3, wrRb, 
         ax.yaxis.set_major_locator(AutoLocator())
         
     plt.show()
-            
-            
-def getMFStarkShifts():
-    """Return the Stark shifts of the MF states for Cs cooling/repump transitions"""
+
+def getMFStarkShifts(wavelength = 1064e-9, # laser wavelength in m
+                    power = 0.00906143,    # laser power in W
+                    beamwaist = 1e-6,      # beam waist in m
+                    ATOM = Cs):
+    """Return the Stark shifts of the MF states for cooling/repump transitions"""
+    bprop = [wavelength, power, beamwaist] # collect beam properties
+    if ATOM == Cs: # assign the relevant hyperfine transitions
+        Fs = [3,4]
+        l1 = [18,24] # index of lines for making legend
+    elif ATOM == Rb:
+        Fs = [1,2]
+        l1 = [6,12] # index of lines for making legend
     
-    print("stark shift of Cs 6S1/2 -> 6P3/2 for different MF states at 1064nm for beam power 6 mW, beam waist 1 micron, giving trap depth 1 mK")
-    bprop = [1064e-9, 6e-3, 1e-6]      # wavelength, beam power, beam waist
+    # print("Stark shift of "+ATOM.X+" S1/2 F = %s, %s -> P3/2 F' = %s, %s for different MF states."%(Fs[0],Fs[0]+1,Fs[1],Fs[1]+1))
     
     plt.figure()
-    # colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    colors = ['k', 'r']
-    for F in [3, 4]:
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for F in Fs:
         for MF in range(-F, F+1):
             print(" ----- |F = "+str(F)+", m_F = "+str(MF)+">")
             for MFp in range(MF-1, MF+2):
-                S = dipole(Cs.m, (0,1/2.,F,MF), bprop,
-                    Cs.D0S, Cs.w0S, Cs.lwS, Cs.nljS,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
-                P = dipole(Cs.m, (1,3/2.,F+1,MFp), bprop,
-                    Cs.D0P3, Cs.w0P3, Cs.lwP3, Cs.nljP3,
-                    nuclear_spin = Cs.I,
-                    symbol=Cs.X)
+                S = dipole(ATOM, (0,1/2.,F,MF), bprop)
+                P = dipole(ATOM, (1,3/2.,F+1,MFp), bprop)
                 shift = (S.acStarkShift(0,0,0, bprop[0], HF=True) - P.acStarkShift(0,0,0, bprop[0], HF=True))/h/1e6
                 if MF != 0:
                     deltaMF = (MFp-MF)*np.sign(MF)
                 else:
                     deltaMF = (MFp-MF)
-                plt.plot(MF, shift, '_', color=colors[F-3], alpha=0.33*(2+deltaMF), markersize=15, linewidth=10)
+                plt.plot(MF, shift, '_', color=colors[F-1], alpha=0.33*(2+deltaMF), markersize=15, linewidth=10)
                 print("|F' = "+str(F+1)+", m_F' = "+str(MFp)+"> : %.5g MHz"%shift)
                 
     plt.xlabel("$M_F$")  
     plt.ylabel("AC Stark Shift (MHz)")
     lines = plt.gca().lines
-    plt.legend(lines[18:24], ['F='+str(f)+', $\Delta M_F=$'+str(-dmf) for f in range(3,5) for dmf in range(-1,2)])
-    plt.show()        
+    plt.legend(lines[l1[0]:l1[1]], ['F='+str(f)+r', $\Delta M_F=$'+str(-dmf) 
+                for f in range(min(Fs),max(Fs)+1) for dmf in range(-1,2)])
+    plt.show()
+
+    
+def plotPolarisability():
+    """Plot the polarisability of Rb 5S and Cs 6S states highlighting our laser wavelengths"""
+    bprop = [1064e-9, 6e-3, 1e-6]      # wavelength, beam power, beam waist
+    wavelengths = np.linspace(700, 1100, 500)*1e-9 # in m
+    ymax = 5000
+    
+    # groundstate rubidium
+    Rb5S = dipole(Rb, (0,1/2.,1,1), bprop)
+    alphaRb = Rb5S.polarisability(wavelengths)/au # polarisability in atomic units
+                    
+    # groundstate caesium
+    Cs6S = dipole(Cs, (0,1/2.,4,4), bprop)
+    alphaCs = Cs6S.polarisability(wavelengths)/au # polarisability in atomic units
+            
+    plt.figure()
+    # split up the plotting so as not to have lines at resonances:
+    for v in [[alphaRb, DUsea_blue, 'Rb 5S$_{1/2}$'], [alphaCs, DUcherry_red, 'Cs 6S$_{1/2}$']]:
+        plus = np.where(v[0] > 0)[0] # where polarisability is positive
+        ind1 = plus[np.where(plus > np.arange(len(plus))+plus[0])[0][0]] # second positive region
+        plt.plot(wavelengths[:plus[0]-1]*1e9, v[0][:plus[0]-1], color=v[1], label=v[2])
+        plt.plot(wavelengths[plus[0]+1:ind1-1]*1e9, v[0][plus[0]+1:ind1-1], color=v[1])
+        plt.plot(wavelengths[ind1+1:]*1e9, v[0][ind1+1:], color=v[1])
+
+    # plot dotted lines to show where the resonances are
+    plt.plot([780]*2, [-ymax, ymax], '--', color=DUsea_blue)
+    plt.plot([795]*2, [-ymax, ymax], '--', color=DUsea_blue)
+    plt.plot([852.3]*2, [-ymax, ymax], '--', color=DUcherry_red)
+    plt.plot([894.6]*2, [-ymax, ymax], '--', color=DUcherry_red)
+
+    # show zero crossing
+    plt.plot([wavelengths[0]*1e9, wavelengths[-1]*1e9], [0,0], 'k--', alpha=0.4)
+    # show laser wavelengths
+    # plt.fill_between([1060,1070], ymax, -ymax, color=DUcherry_red, alpha=0.3)
+    # plt.fill_between([935,945], ymax, -ymax, color=DUcherry_red, alpha=0.3)
+    # plt.fill_between([878, 882], ymax, -ymax, color=DUsea_blue, alpha=0.3)
+    # plt.fill_between([805,825], ymax, -ymax, color=DUsea_blue, alpha=0.3)
+    plt.ylim((-ymax, ymax))
+    plt.ylabel('Polarisability ($a_0^3$)')
+    plt.xlim((wavelengths[0]*1e9, wavelengths[-1]*1e9))
+    plt.xlabel('Wavelength (nm)')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    
+def plotScatRate():
+    """Plot the polarisability of Rb 5S and Cs 6S states and the scattering
+    rates within a given wavelength range (given in metres)"""
+    bprop = [1064e-9, 6e-3, 1e-6]      # wavelength, beam power, beam waist
+    wl1 = np.linspace(795e-9, Cs.rwS[0], 200) # wavelength below Cs D1 line (m)
+    wl2 = np.linspace(Cs.rwS[0], 1100e-9, 200) # wavelength below Cs D1 line (m)
+    
+    # groundstate rubidium
+    Rb5S = dipole(Rb, (0,1/2.,1,1), bprop)
+    
+    # below Cs D1 line, use intensities such that the Rb trap depth is 1mK
+    I1 = 2*kB * 1e-3 *eps0*c / Rb5S.polarisability(wl1)
+                    
+    # groundstate caesium
+    Cs6S = dipole(Cs, (0,1/2.,4,4), bprop)
+    
+    # above Cs D1 line, use intensities such that the Cs trap depth is 1mK
+    I2 = 2*kB * 1e-3 *eps0*c / Cs6S.polarisability(wl2)
+    
+    fig, ax = plt.subplots(2, 2, gridspec_kw = {'height_ratios':[3, 2],'hspace':0,'wspace':0.02}, sharex='col')    
+    for i, wl, I in [[0, wl1, I1], [1, wl2, I2]]:
+        # plot scattering rates for fixed trap depth
+        ax[0][i].semilogy(wl*1e9, Rb5S.scatRate(wl, I), color=DUsea_blue, label='Rb 5S$_{1/2}$') # Rb
+        ax[0][i].semilogy(wl*1e9, Cs6S.scatRate(wl, I), color=DUcherry_red, label='Cs 6S$_{1/2}$') # Cs
+        ax[0][i].plot([min(wl)*1e9, max(wl)*1e9], [100]*2, 'k:') # show acceptable limit
+        ax[0][i].set_ylim((2,10000))
+        # plot polarisability in the same wavelength range
+        ax[1][i].plot(wl*1e9, Rb5S.polarisability(wl)/au, color=DUsea_blue, label='Rb 5S$_{1/2}$')
+        ax[1][i].plot(wl*1e9, Cs6S.polarisability(wl)/au, color=DUcherry_red, label='Cs 6S$_{1/2}$')
+        ax[1][i].set_ylim((-6000, 6000))
+        
+        if not i: # only have y label on the lhs
+            ax[0][i].set_ylabel('Scattering Rate (s$^{-1}$)')
+            ax[1][i].set_ylabel('Polarisability ($a_0^3$)')
+        else: # remove ticks
+            ax[0][i].set_yticks([])
+            ax[1][i].set_yticks([])
+            
+        ax[1][i].set_xlim((wl[0]*1e9, wl[-1]*1e9))
+        ax[1][i].set_xlabel('Wavelength (nm)')
+    
+    # calculate trap depth
+    # Rbdepths, Csdepths = np.zeros(len(wavelengths)), np.zeros(len(wavelengths))
+    # for i in range(len(wavelengths)): # power changes to keep trap depth fixed
+    #     Rb5S.field.E0 = np.sqrt(2 * abs(Is[i]) / eps0 / c)
+    #     Cs6S.field.E0 = np.sqrt(2 * abs(Is[i]) / eps0 / c)
+    #     Rbdepths[i] = Rb5S.acStarkShift(0,0,0, wavelengths[i])/kB*1e3 # in mK
+    #     Csdepths[i] = Cs6S.acStarkShift(0,0,0, wavelengths[i])/kB*1e3 # in mK
+    # 
+    # ax1 = ax[0].twinx() # plot trap depth
+    # l3 = ax1.plot(wavelengths*1e9, Rbdepths, '--', color=DUsea_blue, label='Trap Depth', alpha=0.5)
+    # l4 = ax1.plot(wavelengths*1e9, Csdepths, '--', color=DUcherry_red, label='Trap Depth', alpha=0.5)
+    # ax1.set_ylabel('Trap Depth (mK)')
+    # ax1.set_ylim((-3, 3))
+    # lines = l1+l2+l3+l4 # order lines so that they appear next to each other in the legend
+    # ax[0].legend(lines, [l.get_label() for l in lines], ncol=2, fontsize=11)
+    
+    plt.subplots_adjust(left=0.17, right=0.95, top=0.93, bottom=0.13)
+    ax[0][1].legend()
+    ax[0][0].set_title('Rb Trap Depth 1 mK')
+    ax[0][1].set_title('Cs Trap Depth 1 mK')
+    plt.show()
+
         
 if __name__ == "__main__":
     wavelength = 1064e-9 # wavelength in m
@@ -403,21 +487,17 @@ if __name__ == "__main__":
     beamwaist = 1e-6 # beam waist in m
     bprop = [wavelength, power, beamwaist]
     
-    Rb5P1 = dipole(Rb.m, (1,1/2.,1,1), bprop,
-                    Rb.D0P1, Rb.w0P1, Rb.lwP1, Rb.nljP1,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)
-    Rb5P3 = dipole(Rb.m, (1,3/2.,1,1), bprop,
-                    Rb.D0P3, Rb.w0P3, Rb.lwP3, Rb.nljP3,
-                    nuclear_spin = Rb.I,
-                    symbol=Rb.X)               
+    Rb5P1 = dipole(Rb, (1,1/2.,1,1), bprop)
+    Rb5P3 = dipole(Rb, (1,3/2.,1,1), bprop)               
     
     # print(getStarkShift(Rb5P1))
-    print(getStarkShift(Rb5P3))
-    print(np.array(Rb5P3.polarisability(795e-9, HF=True, split=True))/au)
+    # print(getStarkShift(Rb5P3))
+    # print(np.array(Rb5P3.polarisability(795e-9, HF=True, split=True))/au)
     
     # combinedTrap(power=6e-3)
     # getMFStarkShifts()
+    # plotPolarisability()
+    plotScatRate()
                     
     # compare Kien 2013 Fig 4,5:
     # wls = [np.linspace(680, 690, 200)*1e-9, np.linspace(930, 940, 200)*1e-9]
