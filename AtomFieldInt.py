@@ -91,6 +91,7 @@ Finished diagonalising the combined Hamiltonian, working on matching up the
 eigenvalues with the eigenstates
 """
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 from math import factorial 
@@ -340,6 +341,7 @@ class dipole:
         else:
             omegas = self.omegas
         
+        
         # initiate arrays for results
         empty = np.zeros(np.size(omegas))
         aSvals, aVvals, aTvals = empty.copy(), empty.copy(), empty.copy()
@@ -441,64 +443,28 @@ class dipole:
                             self.J + self.I + F - Fp - MF) * wigner3j(F, 2, 
                             Fp, MF, 0, -MF) * wigner6j(F, 2, Fp, self.J, 
                             self.I, self.J)
-                   
+                        
+                        # print(F, Fp, MF, i, j)
+                        # print(wigner3j(F, 2, Fp, MF, 0, -MF))
+                        # print(wigner6j(F, 2, Fp, self.J, self.I, self.J))
+                        # print()
                         if F == Fp: 
                             # The hyperfine splitting is diagonal in |F,MF>                   
-                            H[i,j] = -0.25 * (aS.real + aT_F.real) * np.abs( 
+                            H[i,j] = -0.5 * (aS.real + aT_F.real) * np.abs( 
                                         self.field.amplitude(x,y,z) )**2 + Vhfs
                         else: 
                             # state mixing is only from the anisotropic polarisability
-                            H[i,j] = -0.25 * aT_F.real * np.abs( self.field.amplitude(x,y,z) )**2
+                            H[i,j] = -0.5 * aT_F.real * np.abs( self.field.amplitude(x,y,z) )**2
                             
         # could fill the rest of H from symmetry: # H = H + H.T - np.diagflat(np.diag(H))
         # diagonalise the Hamiltonian to find the combined shift
         # since it's hermitian np can diagonalise just from the lower traingle
         eigenvalues, eigenvectors = np.linalg.eigh(H, UPLO='L')
         
+        # to get the Stark shift, subtract off the hyperfine shift
+        Hac = eigenvalues - Hhfs
+        
         # note: the diagonalisation in numpy will likely re-order the eigenvectors
         # assume the eigenvector is that closest to the original eigenvector
         indexes = np.argmax(abs(eigenvectors), axis=1)
-        
-        # AC Stark shifts, eigenvectors, hyperfine splittings, F, MF quantum numbers
-        return eigenvalues[indexes] - Hhfs[indexes], eigenvectors[:,indexes], Hhfs[indexes], F_labels, MF_labels
-
-if __name__ == "__main__":
-    # compare polarisability calculations to literature (excited state is off...)
-    import matplotlib.pyplot as plt
-
-    Cs6P = dipole(Cs.m, (1,3/2.), [1064e-9,5e-3,1e-6],
-                Cs.D0P3, Cs.w0P3, Cs.lwP3, Cs.nljP3,
-                nuclear_spin = Cs.I,
-                symbol=Cs.X,
-                Ahfs = Cs.AhP3,
-                Bhfs = Cs.BhP3)
-
-    wavels = np.linspace(400, 1600, 2000)*1e-9 # wavelengths in m
-    old_alpha = 0.5*(Cs6P.polarisability(wavels,mj=0.5) + Cs6P.polarisability(wavels,mj=1.5))/au  # old calculation of polarisability
-    new_alpha = np.zeros(len(wavels))          # get polarisability from diagH
-    # choose state:
-    F, MF = 3, 1
-    for i, wl in enumerate(wavels):
-        evals, evecs, hfs, Fs, MFs = Cs6P.diagH(wl, 0,0,0)
-        Finds = np.where(Fs == F)[0] # indexes of states with given F
-        new_alpha[i] = evals[np.where(MFs[Finds] == MF)[0] + len(Fs) - len(Finds)] / abs(Cs6P.field.amplitude(0,0,0))**2 *-4 / au 
-    
-    lit_vals = []  # scalar, vector, and tensor polarisability for Cs from Kien 2013
-    for i in range(3): 
-        lit_vals.append(np.loadtxt(r'.\Literature\Kien2013_Cs_alpha\Cesium_alpha'+str(i)+'_6P3-2.txt', delimiter=',', skiprows=1))
-
-    # combine polarisabilities for linear polarisation along z for the state F, MF
-    lit_tot = lit_vals[0][:,1] + lit_vals[2][:,1] * (3*MF**2 - F*(F+1))/F/(2*F-1.) * (-1)**(Cs.I + Cs6P.J + F) *np.sqrt(
-        F*(2*F - 1) * (2*F + 1) * (Cs6P.J + 1) * (2*Cs6P.J + 1) * (2*Cs6P.J + 3) / (F + 1) / (2*F + 3) / Cs6P.J / (2*Cs6P.J - 1)
-    ) * wigner6j(F, 2, F, Cs6P.J, Cs.I, Cs6P.J)
-    
-    plt.figure()
-    plt.plot(wavels*1e9, old_alpha, label = 'Old Method')
-    plt.plot(wavels*1e9, new_alpha, '--', label = 'Diagonalise Method')
-    plt.plot(lit_vals[0][:,0], lit_tot, ':', label='Kien 2013')
-    plt.legend()
-    plt.title('Polarisability of the |F=%s, M$_F$=%s> state'%(F,MF))
-    plt.xlabel('Wavelength (nm)')
-    plt.ylabel('Polarisability ($a_0^3$)')
-    plt.ylim(-40000, 40000)
-    plt.show()
+        return Hac[indexes], eigenvectors[:,indexes], Hhfs[indexes], F_labels, MF_labels
